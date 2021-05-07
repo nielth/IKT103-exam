@@ -11,7 +11,7 @@ class DataList(Resource):
         self.data = data
 
     def get(self):
-        return self.data.get_all()
+        return self.data.get()
 
 
 class ModelList(Resource):

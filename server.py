@@ -9,7 +9,7 @@ class DataService:
     def __init__(self, db):
         self.db = db
 
-    def get_all(self):
+    def get(self):
         data = {
             'Models': {},
             'Customers': {}
