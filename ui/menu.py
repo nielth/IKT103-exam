@@ -16,7 +16,7 @@ class tkinter_App(Tk):
         self.frames = {}
 
         for F in (StartPage, conf_cars, conf_customer, assign_car, add_cars,
-                  edit_cars, delete_cars, add_customer, edit_customer):
+                  edit_cars, delete_cars, add_customer, edit_customer, delete_customer):
             frame = F(container, self)
 
             self.frames[F] = frame
@@ -115,15 +115,16 @@ def get_database_models():
 
 class edit_cars(Frame):
     def __init__(self, parent, controller):
-        models = get_database_models()
         Frame.__init__(self, parent)
         self.controller = controller
         label = Label(self, text="Edit Cars", height=5, font=("", 22))
-        label.grid(sticky=E)
+        label.grid()
+        models = get_database_models()
         self.value_inside = StringVar(self)
-        self.value_inside.set("Select car ID")
+        self.value_inside.set("Select car to edit")
         self.question_menu = OptionMenu(self, self.value_inside, *models)
         self.question_menu.grid(row=1, column=0)
+        Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         Label(self, text="Manufacturer").grid(row=2, column=0)
         self.manufacturer = Entry(self)
         self.manufacturer.grid(row=2, column=1)
@@ -139,6 +140,14 @@ class edit_cars(Frame):
         button5 = Button(self, text="Submit",
                          command=lambda: self.add_car_func(), height=2)
         button5.grid(row=5, column=1, sticky=N + S + E + W)
+
+    def refresh(self):
+        self.question_menu.destroy()
+        customers = get_database_models()
+        self.value_inside = StringVar(self)
+        self.value_inside.set("Select car to edit")
+        self.question_menu = OptionMenu(self, self.value_inside, *customers)
+        self.question_menu.grid(row=1, column=0)
 
     def add_car_func(self):
         menu_choice = self.value_inside.get()
@@ -156,21 +165,30 @@ class edit_cars(Frame):
 
 class delete_cars(Frame):
     def __init__(self, parent, controller):
-        models = get_database_models()
         Frame.__init__(self, parent)
         self.controller = controller
         label = Label(self, text="Delete Cars", height=5, font=("", 22))
         label.grid()
+        models = get_database_models()
         self.value_inside = StringVar(self)
-        self.value_inside.set("Select car ID")
+        self.value_inside.set("Select car to delete")
         self.question_menu = OptionMenu(self, self.value_inside, *models)
         self.question_menu.grid(row=1, column=0)
+        Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         button4 = Button(self, text="Back",
                          command=lambda: self.controller.show_frame(conf_cars), height=2)
         button4.grid(row=5, column=0, sticky=N + S + E + W)
         button5 = Button(self, text="Submit",
                          command=lambda: self.delete_car_func(), height=2)
         button5.grid(row=5, column=1, sticky=N + S + E + W)
+
+    def refresh(self):
+        self.question_menu.destroy()
+        customers = get_database_models()
+        self.value_inside = StringVar(self)
+        self.value_inside.set("Select car to delete")
+        self.question_menu = OptionMenu(self, self.value_inside, *customers)
+        self.question_menu.grid(row=1, column=0)
 
     def delete_car_func(self):
         menu_choice = self.value_inside.get()
@@ -192,11 +210,11 @@ class conf_customer(Frame):
         button4.pack(fill=X, side=BOTTOM)
 
         button3 = Button(self, text="Remove",
-                         command=lambda: controller.show_frame(StartPage), height=2)
+                         command=lambda: controller.show_frame(delete_customer), height=2)
         button3.pack(fill=X, side=BOTTOM)
 
         button2 = Button(self, text="Edit",
-                         command=lambda: controller.show_frame(edit_customer), height=2)
+                         command=lambda: (controller.show_frame(edit_customer)), height=2)
         button2.pack(fill=X, side=BOTTOM)
 
         button1 = Button(self, text="Add",
@@ -222,7 +240,7 @@ class add_customer(Frame):
         self.age.grid(row=4, column=1)
 
         button4 = Button(self, text="Back",
-                         command=lambda: self.controller.show_frame(conf_cars), height=2)
+                         command=lambda: self.controller.show_frame(conf_customer), height=2)
         button4.grid(row=5, column=0)
         button5 = Button(self, text="Submit",
                          command=lambda: self.add_customer_func(), height=2)
@@ -235,7 +253,7 @@ class add_customer(Frame):
         output = {'first_name': f'{first_name}', 'family_name': f'{family_name}', 'age': f'{age}'}
 
         res = requests.post("http://127.0.0.1:5000/customers/", json=output)
-        self.controller.show_frame(conf_cars)
+        self.controller.show_frame(conf_customer)
 
 
 def get_database_customers():
@@ -249,15 +267,16 @@ def get_database_customers():
 
 class edit_customer(Frame):
     def __init__(self, parent, controller):
-        customers = get_database_customers()
         Frame.__init__(self, parent)
         self.controller = controller
         label = Label(self, text="Edit Customer", height=5, font=("", 22))
-        label.grid(sticky=E)
+        label.grid()
+        customers = get_database_customers()
         self.value_inside = StringVar(self)
         self.value_inside.set("Select customer ID")
         self.question_menu = OptionMenu(self, self.value_inside, *customers)
         self.question_menu.grid(row=1, column=0)
+        Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         Label(self, text="First Name").grid(row=2, column=0)
         self.manufacturer = Entry(self)
         self.manufacturer.grid(row=2, column=1)
@@ -268,11 +287,19 @@ class edit_customer(Frame):
         self.customer = Entry(self)
         self.customer.grid(row=4, column=1)
         button4 = Button(self, text="Back",
-                         command=lambda: self.controller.show_frame(conf_cars), height=2)
+                         command=lambda: self.controller.show_frame(conf_customer), height=2)
         button4.grid(row=5, column=0, sticky=N + S + E + W)
         button5 = Button(self, text="Submit",
                          command=lambda: self.add_car_func(), height=2)
         button5.grid(row=5, column=1, sticky=N + S + E + W)
+
+    def refresh(self):
+        self.question_menu.destroy()
+        customers = get_database_customers()
+        self.value_inside = StringVar(self)
+        self.value_inside.set("Select customer ID")
+        self.question_menu = OptionMenu(self, self.value_inside, *customers)
+        self.question_menu.grid(row=1, column=0)
 
     def add_car_func(self):
         menu_choice = self.value_inside.get()
@@ -285,33 +312,42 @@ class edit_customer(Frame):
         output = {'manufacturer': f'{manufacturer}', 'year': f'{year}', 'customer_id': f'{customer_id}'}
 
         res = requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
-        self.controller.show_frame(conf_cars)
+        self.controller.show_frame(conf_customer)
 
 
 class delete_customer(Frame):
     def __init__(self, parent, controller):
-        customers = get_database_customers()
         Frame.__init__(self, parent)
         self.controller = controller
         label = Label(self, text="Delete Customer", height=5, font=("", 22))
         label.grid()
+        customers = get_database_customers()
         self.value_inside = StringVar(self)
         self.value_inside.set("Select Customer ID")
         self.question_menu = OptionMenu(self, self.value_inside, *customers)
         self.question_menu.grid(row=1, column=0)
+        Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         button4 = Button(self, text="Back",
                          command=lambda: self.controller.show_frame(conf_cars), height=2)
         button4.grid(row=5, column=0, sticky=N + S + E + W)
         button5 = Button(self, text="Submit",
-                         command=lambda: self.delete_car_func(), height=2)
+                         command=lambda: self.delete_customer_func(), height=2)
         button5.grid(row=5, column=1, sticky=N + S + E + W)
 
-    def delete_car_func(self):
+    def refresh(self):
+        self.question_menu.destroy()
+        customers = get_database_customers()
+        self.value_inside = StringVar(self)
+        self.value_inside.set("Select customer ID")
+        self.question_menu = OptionMenu(self, self.value_inside, *customers)
+        self.question_menu.grid(row=1, column=0)
+
+    def delete_customer_func(self):
         menu_choice = self.value_inside.get()
         temp = re.findall(r'\d+', menu_choice)
-        id_model = int(temp[0])
+        id_customer = int(temp[0])
 
-        res = requests.delete(f"http://127.0.0.1:5000/models/{id_model}/")
+        res = requests.delete(f"http://127.0.0.1:5000/customers/{id_customer}/")
         self.controller.show_frame(conf_cars)
 
 
@@ -321,36 +357,90 @@ class assign_car(Frame):
         models = get_database_models()
         Frame.__init__(self, parent)
         self.controller = controller
-        label = Label(self, text="Edit Customer", height=5, font=("", 22))
+        label = Label(self, text="Assign Car", height=5, font=("", 22))
         label.grid()
+
+        # Model
         self.value_inside_model = StringVar(self)
         self.value_inside_model.set("Select Car ID")
         self.question_menu_model = OptionMenu(self, self.value_inside_model, *models)
         self.question_menu_model.grid(row=1, column=0)
 
+        # Customer
         self.value_inside_customer = StringVar(self)
         self.value_inside_customer.set("Select customer ID")
         self.question_menu_customer = OptionMenu(self, self.value_inside_customer, *customers)
         self.question_menu_customer.grid(row=1, column=1)
-        button4 = Button(self, text="Assign Customer to Car",
-                         command=lambda: self.controller.show_frame(conf_cars), height=2)
-        button4.grid(row=5, column=0)
-        button5 = Button(self, text="Assign Car to Customer",
-                         command=lambda: self.add_car_func(), height=2)
-        button5.grid(row=5, column=1)
 
-    def add_car_func(self):
+        button4 = Button(self, text="Unassign Customer to Car",
+                         command=lambda: self.unassign_car_to_customer(), height=2)
+        button4.grid(row=2, column=1)
+
+        button5 = Button(self, text="Assign Car to Customer",
+                         command=lambda: self.assign_car_to_customer(), height=2)
+        button5.grid(row=2, column=0)
+
+        Button(self, text="Back", command=lambda: self.controller.show_frame(conf_cars), height=2).grid(row=3,
+                                                                                                        sticky=N + S + E + W)
+        Button(self, text='Refresh Menu', command=self.refresh, height=2).grid(column=1, row=3, sticky=N + S + E + W)
+
+    def refresh(self):
+        self.question_menu_model.destroy()
+        models = get_database_models()
+        self.value_inside_model = StringVar(self)
+        self.value_inside_model.set("Select Car ID")
+        self.question_menu_model = OptionMenu(self, self.value_inside_model, *models)
+        self.question_menu_model.grid(row=1, column=0)
+
+        self.question_menu_customer.destroy()
+        customers = get_database_customers()
+        self.value_inside_customer = StringVar(self)
+        self.value_inside_customer.set("Select customer ID")
+        self.question_menu_customer = OptionMenu(self, self.value_inside_customer, *customers)
+        self.question_menu_customer.grid(row=1, column=1)
+
+    def assign_car_to_customer(self):
+        menu_choice = self.value_inside_customer.get()
+        temp = re.findall(r'\d+', menu_choice)
+        id_customer = int(temp[0])
+
         menu_choice = self.value_inside_model.get()
         temp = re.findall(r'\d+', menu_choice)
         id_model = int(temp[0])
 
-        manufacturer = self.manufacturer.get()
-        year = int(self.year.get())
-        customer_id = self.customer.get()
-        output = {'manufacturer': f'{manufacturer}', 'year': f'{year}', 'customer_id': f'{customer_id}'}
+        response = requests.get(f'http://localhost:5000/models/{id_model}/')
+        model = response.json()
+        if model['customer_id'] != None:
+            self.print_error()
+            return
+        output = {'manufacturer': f'{model["manufacturer"]}', 'year': f'{model["year"]}',
+                  'customer_id': f'{id_customer}'}
 
         res = requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
-        self.controller.show_frame(conf_cars)
+        self.controller.show_frame(StartPage)
+
+    def print_error(self):
+        label = Label(self, text="Error, Car already has owner")
+        label.grid(column=0, row=4)
+
+    def unassign_car_to_customer(self):
+        menu_choice = self.value_inside_model.get()
+        temp = re.findall(r'\d+', menu_choice)
+        id_model = int(temp[0])
+
+        response = requests.get(f'http://localhost:5000/models/{id_model}/')
+        model = response.json()
+        if model['customer_id'] == None:
+            self.print_error_unassign()
+            return
+        output = {'manufacturer': f'{model["manufacturer"]}', 'year': f'{model["year"]}', 'customer_id': ''}
+
+        res = requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
+        self.controller.show_frame(StartPage)
+
+    def print_error_unassign(self):
+        label = Label(self, text="Error, Car has no owner")
+        label.grid(column=0, row=4)
 
 
 def main():

@@ -42,7 +42,10 @@ class Model(Resource):
 
         model.manufacturer = json_data['manufacturer']
         model.year = json_data['year']
-        model.customer_id = json_data['customer_id']
+        if json_data['customer_id'] == "":
+            model.customer_id = None
+        else:
+            model.customer_id = json_data['customer_id']
         self.data.update()
 
         return jsonify(model)
@@ -89,8 +92,8 @@ class Customer(Resource):
 
         return jsonify(model)
 
-    def delete(self, id_model):
-        model = self.data.table_by_id(Customers, id_model)
+    def delete(self, id_customer):
+        model = self.data.table_by_id(Customers, id_customer)
         if not model:
             raise NotFound('Invalid ID, customer not found')
         self.data.delete(model)
