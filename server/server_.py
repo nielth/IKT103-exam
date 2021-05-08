@@ -3,7 +3,6 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 
 from controllers.simple_controller import *
-from models.tables import *
 
 
 class DataService:
@@ -56,7 +55,6 @@ class DataService:
 class server:
     def __init__(self):
         self.app = Flask(__name__)
-        self.app.route("/", methods=['GET', 'POST', 'PUT'])
         self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///models/data.sqlite"
         api = Api(self.app)
         self.db = SQLAlchemy(self.app)

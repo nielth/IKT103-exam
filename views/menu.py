@@ -98,15 +98,21 @@ class add_cars(Frame):
         manufacturer = self.manufacturer.get()
         year = int(self.year.get())
         customer_id = self.customer.get()
+        try:
+            customer_id = int(customer_id)
+        except ValueError:
+            print("No integer given")
         response = requests.get('http://localhost:5000/customers/')
         options_list = response.json()
-        model_int = 0
-
-        if type(customer_id) == int:
-            model_int = int(customer_id)
-        if 'id' in options_list:
-            if options_list[0]['id'] != model_int:
-                return
+        customer_exist = bool
+        if len(options_list) != 0:
+            for i in options_list:
+                if i['id'] == customer_id:
+                    customer_exist = True
+                if not customer_exist:
+                    return
+        elif customer_id != '':
+            return
         output = {'manufacturer': f'{manufacturer}', 'year': f'{year}', 'customer_id': f'{customer_id}'}
         requests.post("http://127.0.0.1:5000/models/", json=output)
         self.controller.show_frame(conf_cars)
@@ -130,15 +136,21 @@ def edit_table(controller, value_inside, first_entry, second_entry, third_entry,
     if table == "model":
         second_entry = int(second_entry.get())
         third_entry = third_entry.get()
+        try:
+            third_entry = int(third_entry)
+        except ValueError:
+            print("No integer given")
         response = requests.get('http://localhost:5000/customers/')
         options_list = response.json()
-        model_int = 0
-        
-        if type(third_entry) == int:
-            model_int = int(third_entry)
-        if 'id' in options_list:
-            if options_list[0]['id'] != model_int:
-                return
+        customer_exist = bool
+        if len(options_list) != 0:
+            for i in options_list:
+                if i['id'] == third_entry:
+                    customer_exist = True
+                if not customer_exist:
+                    return
+        elif third_entry != '':
+            return
         output = {'manufacturer': f'{first_entry}', 'year': f'{second_entry}', 'customer_id': f'{third_entry}'}
         requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
         controller.show_frame(conf_cars)
@@ -371,13 +383,18 @@ class delete_customer(Frame):
         button5.grid(row=5, column=1, sticky=N + S + E + W)
 
     def refresh(self):
-        if self.question_menu in delete_customer:
-            self.question_menu.destroy()
+        try:
+            try:
+                self.question_menu.destroy()
+            except (ValueError, Exception):
+                pass
             customers = get_database_customers()
             self.value_inside = StringVar(self)
             self.value_inside.set("Select customer ID")
             self.question_menu = OptionMenu(self, self.value_inside, *customers)
             self.question_menu.grid(row=1, column=0)
+        except TypeError:
+            pass
 
     def delete_customer_func(self):
         menu_choice = self.value_inside.get()
