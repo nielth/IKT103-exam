@@ -1,7 +1,6 @@
-from flask import Flask, request, make_response, jsonify
+from flask import request, jsonify
 from flask_restful import Resource
 from werkzeug.exceptions import *
-import json
 
 from models.tables import *
 

@@ -97,10 +97,18 @@ class add_cars(Frame):
     def add_car_func(self):
         manufacturer = self.manufacturer.get()
         year = int(self.year.get())
-        model_id = self.customer.get()
-        output = {'manufacturer': f'{manufacturer}', 'year': f'{year}', 'customer_id': f'{model_id}'}
+        customer_id = self.customer.get()
+        response = requests.get('http://localhost:5000/customers/')
+        options_list = response.json()
+        model_int = 0
 
-        res = requests.post("http://127.0.0.1:5000/models/", json=output)
+        if type(customer_id) == int:
+            model_int = int(customer_id)
+        if 'id' in options_list:
+            if options_list[0]['id'] != model_int:
+                return
+        output = {'manufacturer': f'{manufacturer}', 'year': f'{year}', 'customer_id': f'{customer_id}'}
+        requests.post("http://127.0.0.1:5000/models/", json=output)
         self.controller.show_frame(conf_cars)
 
 
@@ -122,6 +130,15 @@ def edit_table(controller, value_inside, first_entry, second_entry, third_entry,
     if table == "model":
         second_entry = int(second_entry.get())
         third_entry = third_entry.get()
+        response = requests.get('http://localhost:5000/customers/')
+        options_list = response.json()
+        model_int = 0
+        
+        if type(third_entry) == int:
+            model_int = int(third_entry)
+        if 'id' in options_list:
+            if options_list[0]['id'] != model_int:
+                return
         output = {'manufacturer': f'{first_entry}', 'year': f'{second_entry}', 'customer_id': f'{third_entry}'}
         requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
         controller.show_frame(conf_cars)
@@ -143,8 +160,9 @@ class edit_cars(Frame):
         models = get_database_models()
         self.value_inside = StringVar(self)
         self.value_inside.set("Select car to edit")
-        self.question_menu = OptionMenu(self, self.value_inside, *models)
-        self.question_menu.grid(row=1, column=0)
+        if len(models) != 0:
+            self.question_menu = OptionMenu(self, self.value_inside, *models)
+            self.question_menu.grid(row=1, column=0)
         Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         Label(self, text="Manufacturer").grid(row=2, column=0)
         self.manufacturer = Entry(self)
@@ -159,16 +177,23 @@ class edit_cars(Frame):
                          command=lambda: self.controller.show_frame(conf_cars), height=2)
         button4.grid(row=5, column=0, sticky=N + S + E + W)
         button5 = Button(self, text="Submit",
-                         command=lambda: edit_table(self.controller, self.value_inside, self.manufacturer, self.year, self.customer, "model"), height=2)
+                         command=lambda: edit_table(self.controller, self.value_inside, self.manufacturer, self.year,
+                                                    self.customer, "model"), height=2)
         button5.grid(row=5, column=1, sticky=N + S + E + W)
 
     def refresh(self):
-        self.question_menu.destroy()
-        customers = get_database_models()
-        self.value_inside = StringVar(self)
-        self.value_inside.set("Select car to edit")
-        self.question_menu = OptionMenu(self, self.value_inside, *customers)
-        self.question_menu.grid(row=1, column=0)
+        try:
+            try:
+                self.question_menu.destroy()
+            except (ValueError, Exception):
+                pass
+            customers = get_database_models()
+            self.value_inside = StringVar(self)
+            self.value_inside.set("Select car to edit")
+            self.question_menu = OptionMenu(self, self.value_inside, *customers)
+            self.question_menu.grid(row=1, column=0)
+        except (ValueError, Exception):
+            pass
 
 
 class delete_cars(Frame):
@@ -180,8 +205,9 @@ class delete_cars(Frame):
         models = get_database_models()
         self.value_inside = StringVar(self)
         self.value_inside.set("Select car to delete")
-        self.question_menu = OptionMenu(self, self.value_inside, *models)
-        self.question_menu.grid(row=1, column=0)
+        if len(models) != 0:
+            self.question_menu = OptionMenu(self, self.value_inside, *models)
+            self.question_menu.grid(row=1, column=0)
         Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         button4 = Button(self, text="Back",
                          command=lambda: self.controller.show_frame(conf_cars), height=2)
@@ -191,19 +217,25 @@ class delete_cars(Frame):
         button5.grid(row=5, column=1, sticky=N + S + E + W)
 
     def refresh(self):
-        self.question_menu.destroy()
-        customers = get_database_models()
-        self.value_inside = StringVar(self)
-        self.value_inside.set("Select car to delete")
-        self.question_menu = OptionMenu(self, self.value_inside, *customers)
-        self.question_menu.grid(row=1, column=0)
+        try:
+            try:
+                self.question_menu.destroy()
+            except (ValueError, Exception):
+                pass
+            customers = get_database_models()
+            self.value_inside = StringVar(self)
+            self.value_inside.set("Select car to delete")
+            self.question_menu = OptionMenu(self, self.value_inside, *customers)
+            self.question_menu.grid(row=1, column=0)
+        except (ValueError, Exception):
+            pass
 
     def delete_car_func(self):
         menu_choice = self.value_inside.get()
         temp = re.findall(r'\d+', menu_choice)
         id_model = int(temp[0])
 
-        res = requests.delete(f"http://127.0.0.1:5000/models/{id_model}/")
+        requests.delete(f"http://127.0.0.1:5000/models/{id_model}/")
         self.controller.show_frame(conf_cars)
 
 
@@ -260,7 +292,7 @@ class add_customer(Frame):
         age = int(self.age.get())
         output = {'first_name': f'{first_name}', 'family_name': f'{family_name}', 'age': f'{age}'}
 
-        res = requests.post("http://127.0.0.1:5000/customers/", json=output)
+        requests.post("http://127.0.0.1:5000/customers/", json=output)
         self.controller.show_frame(conf_customer)
 
 
@@ -282,8 +314,9 @@ class edit_customer(Frame):
         customers = get_database_customers()
         self.value_inside = StringVar(self)
         self.value_inside.set("Select car to edit")
-        self.question_menu = OptionMenu(self, self.value_inside, *customers)
-        self.question_menu.grid(row=1, column=0)
+        if len(customers) != 0:
+            self.question_menu = OptionMenu(self, self.value_inside, *customers)
+            self.question_menu.grid(row=1, column=0)
         Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         Label(self, text="First Name").grid(row=2, column=0)
         self.first_name = Entry(self)
@@ -298,16 +331,23 @@ class edit_customer(Frame):
                          command=lambda: self.controller.show_frame(conf_customer), height=2)
         button4.grid(row=5, column=0, sticky=N + S + E + W)
         button5 = Button(self, text="Submit",
-                         command=lambda: edit_table(self.controller, self.value_inside, self.first_name, self.family_name, self.age, "customer"), height=2)
+                         command=lambda: edit_table(self.controller, self.value_inside, self.first_name,
+                                                    self.family_name, self.age, "customer"), height=2)
         button5.grid(row=5, column=1, sticky=N + S + E + W)
 
     def refresh(self):
-        self.question_menu.destroy()
-        customers = get_database_customers()
-        self.value_inside = StringVar(self)
-        self.value_inside.set("Select customer ID")
-        self.question_menu = OptionMenu(self, self.value_inside, *customers)
-        self.question_menu.grid(row=1, column=0)
+        try:
+            try:
+                self.question_menu.destroy()
+            except (ValueError, Exception):
+                pass
+            customers = get_database_customers()
+            self.value_inside = StringVar(self)
+            self.value_inside.set("Select customer ID")
+            self.question_menu = OptionMenu(self, self.value_inside, *customers)
+            self.question_menu.grid(row=1, column=0)
+        except TypeError:
+            pass
 
 
 class delete_customer(Frame):
@@ -319,8 +359,9 @@ class delete_customer(Frame):
         customers = get_database_customers()
         self.value_inside = StringVar(self)
         self.value_inside.set("Select customer to delete")
-        self.question_menu = OptionMenu(self, self.value_inside, *customers)
-        self.question_menu.grid(row=1, column=0)
+        if len(customers) != 0:
+            self.question_menu = OptionMenu(self, self.value_inside, *customers)
+            self.question_menu.grid(row=1, column=0)
         Button(self, text='Refresh Menu', command=self.refresh).grid(row=1, column=1, sticky=N + S + E + W)
         button4 = Button(self, text="Back",
                          command=lambda: self.controller.show_frame(conf_cars), height=2)
@@ -330,19 +371,20 @@ class delete_customer(Frame):
         button5.grid(row=5, column=1, sticky=N + S + E + W)
 
     def refresh(self):
-        self.question_menu.destroy()
-        customers = get_database_customers()
-        self.value_inside = StringVar(self)
-        self.value_inside.set("Select customer ID")
-        self.question_menu = OptionMenu(self, self.value_inside, *customers)
-        self.question_menu.grid(row=1, column=0)
+        if self.question_menu in delete_customer:
+            self.question_menu.destroy()
+            customers = get_database_customers()
+            self.value_inside = StringVar(self)
+            self.value_inside.set("Select customer ID")
+            self.question_menu = OptionMenu(self, self.value_inside, *customers)
+            self.question_menu.grid(row=1, column=0)
 
     def delete_customer_func(self):
         menu_choice = self.value_inside.get()
         temp = re.findall(r'\d+', menu_choice)
         id_customer = int(temp[0])
 
-        res = requests.delete(f"http://127.0.0.1:5000/customers/{id_customer}/")
+        requests.delete(f"http://127.0.0.1:5000/customers/{id_customer}/")
         self.controller.show_frame(conf_cars)
 
 
@@ -358,41 +400,52 @@ class assign_car(Frame):
         # Model
         self.value_inside_model = StringVar(self)
         self.value_inside_model.set("Select Car ID")
-        self.question_menu_model = OptionMenu(self, self.value_inside_model, *models)
-        self.question_menu_model.grid(row=1, column=0)
+        if len(models) != 0:
+            self.question_menu_model = OptionMenu(self, self.value_inside_model, *models)
+            self.question_menu_model.grid(row=1, column=0)
 
         # Customer
         self.value_inside_customer = StringVar(self)
         self.value_inside_customer.set("Select customer ID")
-        self.question_menu_customer = OptionMenu(self, self.value_inside_customer, *customers)
-        self.question_menu_customer.grid(row=1, column=1)
+        if len(customers) != 0:
+            self.question_menu_customer = OptionMenu(self, self.value_inside_customer, *customers)
+            self.question_menu_customer.grid(row=1, column=1)
 
         button4 = Button(self, text="Unassign Customer to Car",
-                         command=lambda: self.unassign_car_to_customer(), height=2)
+                         command=lambda: self.unassign_car_from_customer(), height=2)
         button4.grid(row=2, column=1)
 
         button5 = Button(self, text="Assign Car to Customer",
                          command=lambda: self.assign_car_to_customer(), height=2)
         button5.grid(row=2, column=0)
 
-        Button(self, text="Back", command=lambda: self.controller.show_frame(conf_cars), height=2).grid(row=3,
-                                                                                                        sticky=N + S + E + W)
+        Button(self, text="Back", command=lambda: self.controller.show_frame(StartPage),
+               height=2).grid(row=3, sticky=N + S + E + W)
         Button(self, text='Refresh Menu', command=self.refresh, height=2).grid(column=1, row=3, sticky=N + S + E + W)
 
     def refresh(self):
-        self.question_menu_model.destroy()
-        models = get_database_models()
-        self.value_inside_model = StringVar(self)
-        self.value_inside_model.set("Select Car ID")
-        self.question_menu_model = OptionMenu(self, self.value_inside_model, *models)
-        self.question_menu_model.grid(row=1, column=0)
+        try:
+            try:
+                self.question_menu_model.destroy()
+            except (ValueError, Exception):
+                pass
+            models = get_database_models()
+            self.value_inside_model = StringVar(self)
+            self.value_inside_model.set("Select Car ID")
+            self.question_menu_model = OptionMenu(self, self.value_inside_model, *models)
+            self.question_menu_model.grid(row=1, column=0)
 
-        self.question_menu_customer.destroy()
-        customers = get_database_customers()
-        self.value_inside_customer = StringVar(self)
-        self.value_inside_customer.set("Select customer ID")
-        self.question_menu_customer = OptionMenu(self, self.value_inside_customer, *customers)
-        self.question_menu_customer.grid(row=1, column=1)
+            try:
+                self.question_menu_customer.destroy()
+            except (ValueError, Exception):
+                pass
+            customers = get_database_customers()
+            self.value_inside_customer = StringVar(self)
+            self.value_inside_customer.set("Select customer ID")
+            self.question_menu_customer = OptionMenu(self, self.value_inside_customer, *customers)
+            self.question_menu_customer.grid(row=1, column=1)
+        except TypeError:
+            pass
 
     def assign_car_to_customer(self):
         menu_choice = self.value_inside_customer.get()
@@ -405,32 +458,32 @@ class assign_car(Frame):
 
         response = requests.get(f'http://localhost:5000/models/{id_model}/')
         model = response.json()
-        if model['customer_id'] != None:
+        if model['customer_id'] is not None:
             self.print_error()
             return
         output = {'manufacturer': f'{model["manufacturer"]}', 'year': f'{model["year"]}',
                   'customer_id': f'{id_customer}'}
 
-        res = requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
+        requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
         self.controller.show_frame(StartPage)
 
     def print_error(self):
         label = Label(self, text="Error, Car already has owner")
         label.grid(column=0, row=4)
 
-    def unassign_car_to_customer(self):
+    def unassign_car_from_customer(self):
         menu_choice = self.value_inside_model.get()
         temp = re.findall(r'\d+', menu_choice)
         id_model = int(temp[0])
 
         response = requests.get(f'http://localhost:5000/models/{id_model}/')
         model = response.json()
-        if model['customer_id'] == None:
+        if model['customer_id'] is None:
             self.print_error_unassign()
             return
         output = {'manufacturer': f'{model["manufacturer"]}', 'year': f'{model["year"]}', 'customer_id': ''}
 
-        res = requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
+        requests.put(f"http://127.0.0.1:5000/models/{id_model}/", json=output)
         self.controller.show_frame(StartPage)
 
     def print_error_unassign(self):
