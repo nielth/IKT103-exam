@@ -104,13 +104,14 @@ class add_cars(Frame):
             print("No integer given")
         response = requests.get('http://localhost:5000/customers/')
         options_list = response.json()
-        customer_exist = bool
+        customer_exist = False
         if len(options_list) != 0:
             for i in options_list:
                 if i['id'] == customer_id:
                     customer_exist = True
-                if not customer_exist:
-                    return
+                    break
+            if not customer_exist:
+                return
         elif customer_id != '':
             return
         output = {'manufacturer': f'{manufacturer}', 'year': f'{year}', 'customer_id': f'{customer_id}'}
